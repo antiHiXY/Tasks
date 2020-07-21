@@ -84,6 +84,7 @@ class Shader
         {
             glUniform1f (glGetUniformLocation (id, name.c_str ()), value);
         }
+
     private:
         void checkCompileErrors (unsigned int shader, std::string type)
         {
