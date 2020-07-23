@@ -1,9 +1,5 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include "shader_class.h"
 #include "stb_image.h"
 
@@ -41,11 +37,11 @@ int main ()
     Shader test_shader ("shader.vs", "shader.fs");
 
     float vertices[] = {
-        // positions            // texture coords
-         0.5f,  0.5f, 0.0f,     1.0f, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,     1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,     0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,     0.0f, 1.0f  // top left 
+        // positions          // colors           // texture coords
+         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
     };
     unsigned int indices[] = {
         0, 1, 3, // first triangle
@@ -64,10 +60,12 @@ int main ()
     glBufferData (GL_ELEMENT_ARRAY_BUFFER, sizeof (indices), indices, GL_STATIC_DRAW);
 
 
-    glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof (float), (void *)0);
+    glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof (float), (void *)0);
     glEnableVertexAttribArray (0);
-    glVertexAttribPointer (1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof (float), (void *)(3 * sizeof (float)));
+    glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof (float), (void *)(3 * sizeof (float)));
     glEnableVertexAttribArray (1);
+    glVertexAttribPointer (2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof (float), (void *)(6 * sizeof (float)));
+    glEnableVertexAttribArray (2);
 
     unsigned int texture_1, texture_2;
 
@@ -75,7 +73,6 @@ int main ()
     glBindTexture (GL_TEXTURE_2D, texture_1);
 
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -132,13 +129,7 @@ int main ()
         glActiveTexture (GL_TEXTURE1);
         glBindTexture (GL_TEXTURE_2D, texture_2);
 
-        glm::mat4 transform = glm::mat4 (1.0f);
-        transform = glm::translate (transform, glm::vec3 (0.5f, -0.5f, 0.0f));
-        transform = glm::rotate (transform, (float)glfwGetTime (), glm::vec3 (0.0f, 0.0f, 1.0f));
-
         test_shader.use ();
-        unsigned int transformLoc = glGetUniformLocation (test_shader.id, "transform");
-        glUniformMatrix4fv (transformLoc, 1, GL_FALSE, glm::value_ptr (transform));
         glBindVertexArray (VAO);
         glDrawElements (GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
