@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -38,15 +39,55 @@ int main ()
         return -1;
     }
 
+    glEnable (GL_DEPTH_TEST);
+
     Shader test_shader ("shader.vs", "shader.fs");
 
     float vertices[] = {
-        // positions            // texture coords
-         0.5f,  0.5f, 0.0f,     1.0f, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,     1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,     0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,     0.0f, 1.0f  // top left 
+        // positions          // texture coords
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
+
     unsigned int indices[] = {
         0, 1, 3, // first triangle
         1, 2, 3  // second triangle
@@ -125,22 +166,31 @@ int main ()
         processInput (window);
 
         glClearColor (0.2f, 0.3f, 0.3f, 1.0f);
-        glClear (GL_COLOR_BUFFER_BIT);
+        glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glActiveTexture (GL_TEXTURE0);
         glBindTexture (GL_TEXTURE_2D, texture_1);
         glActiveTexture (GL_TEXTURE1);
         glBindTexture (GL_TEXTURE_2D, texture_2);
 
-        glm::mat4 transform = glm::mat4 (1.0f);
-        transform = glm::translate (transform, glm::vec3 (0.5f, -0.5f, 0.0f));
-        transform = glm::rotate (transform, (float)glfwGetTime (), glm::vec3 (0.0f, 0.0f, 1.0f));
-
         test_shader.use ();
-        unsigned int transformLoc = glGetUniformLocation (test_shader.id, "transform");
-        glUniformMatrix4fv (transformLoc, 1, GL_FALSE, glm::value_ptr (transform));
+        glm::mat4 model      = glm::mat4 (1.0f);
+        glm::mat4 view       = glm::mat4 (1.0f);
+        glm::mat4 projection = glm::mat4 (1.0f);
+        model      = glm::rotate (model, (float)glfwGetTime () * glm::radians (50.0f), glm::vec3 (1.0f, 0.0f, 0.0f));
+        view       = glm::translate (view, glm::vec3 (0.0f, 0.0f, -3.0f));
+        projection = glm::perspective (glm::radians (45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        
+        unsigned int model_loc = glGetUniformLocation (test_shader.id, "model");
+        unsigned int view_loc = glGetUniformLocation (test_shader.id, "view");
+
+        glUniformMatrix4fv (model_loc, 1, GL_FALSE, glm::value_ptr (model));
+        glUniformMatrix4fv (view_loc, 1, GL_FALSE, &view[0][0]);
+
+        test_shader.setMat4 ("projection", projection);
+
         glBindVertexArray (VAO);
-        glDrawElements (GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawArrays (GL_TRIANGLES, 0, 36);
 
         glfwSwapBuffers (window);
         glfwPollEvents ();
